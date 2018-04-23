@@ -1,15 +1,12 @@
-
-package socketthrdserver;
-
-// By Greg Ozbirn, University of Texas at Dallas
-// Adapted from example at Sun website:
-// http://java.sun.com/developer/onlineTraining/Programming/BasicJava2/socket.html
-// 11/07/07
+// Patrick Dayton
+// CS5348 - Ozbirn
+// Due 4/23/18
 
 
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.Semaphore;
 
 class ClientWorker implements Runnable
 {
@@ -18,6 +15,7 @@ class ClientWorker implements Runnable
 
     public static ArrayList<String> allUsers = new ArrayList<>();
     public static ArrayList<String> allConnected = new ArrayList<>();
+    static Semaphore mutex = new Semaphore(1);
 
     //messages array will be edited at the same time as the allUsers array so we can match them via index
     public static ArrayList<ArrayList<String>> messages = new ArrayList<>();
@@ -68,11 +66,24 @@ class ClientWorker implements Runnable
 
                             allConnected.add(name);
 
+                            boolean go1 = true;
+
                             // add to the allUsers if they are new
                             if(!allUsers.contains(name)){
                                 allUsers.add(name);
                                 ArrayList<String> temp = new ArrayList<>();
-                                messages.add(temp);
+                                while(go1){
+                                    try{
+                                        // use mutual exclusion to keep from corrupting messages
+                                        mutex.acquire();
+                                        messages.add(temp);
+                                        mutex.release();
+                                        go1 = false;
+                                    } catch(InterruptedException e) {
+                                        System.out.println("InterruptedException caught");
+                                    }
+                                }
+
                                 System.out.println("Connection by unknown user "+name);
                             }
                             else{
@@ -90,38 +101,78 @@ class ClientWorker implements Runnable
                             System.out.println(name+" displays all currently connected users. ");
                             break;
                         case "c":
-                            int recipientIndex = allUsers.indexOf(recipient);
+
                             message = message+"#"+name;
-                            try{
-                                //find the recipient and add message to his/her message list
-                                messages.get(recipientIndex).add(message);
-                                out.println("Message delivered.");
-                            } catch (ArrayIndexOutOfBoundsException exception){
-                                //if recipient doesn't exist, add them
-                                allUsers.add(recipient);
-                                ArrayList<String> temp = new ArrayList<>();
-                                messages.add(temp);
-                                recipientIndex = allUsers.indexOf(recipient);
-                                messages.get(recipientIndex).add(message);
-                                out.println("Message delivered.");
-                            }
-                            System.out.println(name+" posts a messge for " + recipient);
-                            break;
-                        case "d":
-                            message = message+"#"+name;
-                            for (int i = 0; i < allConnected.size(); i++) {
-                                System.out.println("messages.get(i).toString() = " + messages.get(i).toString());
-                                messages.get(i).add(message);
+                            boolean cGo;
+                            int recipientIndex;
+
+                            //find the recipient and add message to his/her message list
+                            cGo = true;
+                            while(cGo){
+                                try{
+                                    // use mutual exclusion to keep from corrupting messages
+                                    mutex.acquire();
+                                    try{
+                                        recipientIndex = allUsers.indexOf(recipient);
+                                        messages.get(recipientIndex).add(message);
+                                    } catch (ArrayIndexOutOfBoundsException exception){
+                                        //if recipient doesn't exist, add them
+                                        allUsers.add(recipient);
+                                        ArrayList<String> temp = new ArrayList<>();
+                                        messages.add(temp);
+                                        recipientIndex = allUsers.indexOf(recipient);
+                                        messages.get(recipientIndex).add(message);
+                                    }
+
+                                    mutex.release();
+                                    cGo = false;
+                                } catch(InterruptedException e) {
+                                    System.out.println("InterruptedException caught");
+                                }
                             }
                             out.println("Message delivered.");
+
+                            System.out.println(name+" posts a messge for " + recipient);
+                            break;
+
+                        case "d":
+                            message = message+"#"+name;
+                            boolean dGo = true;
+
+                            while(dGo){
+                                try{
+                                    // use mutual exclusion to keep from corrupting messages
+                                    mutex.acquire();
+                                    for (int i = 0; i < allConnected.size(); i++) {
+                                        messages.get(i).add(message);
+                                    }
+                                    mutex.release();
+                                    dGo = false;
+                                } catch(InterruptedException e) {
+                                    System.out.println("InterruptedException caught");
+                                }
+                            }
+                            out.println("Messages delivered.");
                             System.out.println(name+" posts a messge for all currently connected users.");
                             break;
                         case "e":
                             message = message+"#"+name;
-                            for (int i = 0; i < allUsers.size(); i++) {
-                                messages.get(i).add(message);
+                            boolean eGo = true;
+                            while(eGo){
+                                try{
+                                    // use mutual exclusion to keep from corrupting messages
+                                    mutex.acquire();
+                                    for (int i = 0; i < allUsers.size(); i++) {
+                                        messages.get(i).add(message);
+                                    }
+                                    mutex.release();
+                                    eGo = false;
+                                } catch(InterruptedException e) {
+                                    System.out.println("InterruptedException caught");
+                                }
                             }
-                            out.println("Message delivered.");
+
+                            out.println("Messages delivered.");
                             System.out.println(name+" posts a messge for all users.");
                             break;
                         case "f":
@@ -241,15 +292,15 @@ class ClientWorker implements Runnable
 
      public static void main(String[] args)
      {
-//        if (args.length != 1)
-//        {
-//           System.out.println("Usage: java SocketThrdServer port");
-//           System.exit(1);
-//        }
+       if (args.length != 1)
+       {
+          System.out.println("Usage: java SocketThrdServer port");
+          System.exit(1);
+       }
 
         SocketThrdServer server = new SocketThrdServer();
-//        int port = Integer.valueOf(args[0]);
-        int port = 3030;
+        int port = Integer.valueOf(args[0]);
+        //int port = 3030;
         server.listenSocket(port);
     }
 }
