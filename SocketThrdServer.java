@@ -19,6 +19,9 @@ class ClientWorker implements Runnable
     public static ArrayList<String> allUsers = new ArrayList<>();
     public static ArrayList<String> allConnected = new ArrayList<>();
 
+    //messages array will be edited at the same time as the allUsers array so we can match them via index
+    public static ArrayList<ArrayList<String>> messages = new ArrayList<>();
+
     ClientWorker(Socket client)
     {
        this.client = client;
@@ -53,14 +56,20 @@ class ClientWorker implements Runnable
                     ArrayList<String> request = new ArrayList<>(Arrays.asList(line.split("&")));
                     String name = request.get(0);
                     String command = request.get(1);
-                    System.out.println("name = " + name+"   |   command = " + command);
+                    String recipient = request.get(2);
+                    String message = request.get(3);
+                    System.out.println("name = " + name+"   |   command = " + command+"   |   recipient = " + recipient+"   |   message = " + message);
 
                     switch (command){
                         case "1": //connect
                             System.out.println("here");
                             // add to the allUsers if they are new
-                            if(!allUsers.contains(name))
+                            if(!allUsers.contains(name)){
                                 allUsers.add(name);
+                                ArrayList<String> temp = new ArrayList<>();
+                                messages.add(temp);
+                            }
+
                             // add to the allConnected list until they log off
                             if(!allConnected.contains(name))
                                 allConnected.add(name);
@@ -73,20 +82,30 @@ class ClientWorker implements Runnable
                             out.println(displayConnected());
                             break;
                         case "c":
-                            out.println(line);
-                            messageUser();
+                            int recipientIndex = allUsers.indexOf(recipient);
+                            messages.get(recipientIndex).add(message);
+                            out.println("Message delivered.");
                             break;
                         case "d":
-                            out.println(line);
-                            messageAllConnected();
+                            for (int i = 0; i < allConnected.size(); i++) {
+                                messages.get(i).add(message);
+                            }
+                            out.println("Message delivered.");
                             break;
                         case "e":
-                            out.println(line);
-                            messageAllKnown();
+                            for (int i = 0; i < allUsers.size(); i++) {
+                                messages.get(i).add(message);
+                            }
+                            out.println("Message delivered.");
                             break;
                         case "f":
-                            out.println(line);
-                            getMessages();
+                            int currentIndex = allUsers.indexOf(name);
+                            String mString = "";
+                            for (int i = 0; i < messages.get(currentIndex).size(); i++) {
+                                mString+="&";
+                                mString+=messages.get(currentIndex).get(i);
+                            }
+                            out.println(mString);
                             break;
                         case "g":
                             go = false;
@@ -136,26 +155,6 @@ class ClientWorker implements Runnable
             names+=allConnected.get(i);
         }
         return names;
-    }
-
-    /*c. Send a text message to a particular user.*/
-    public static void messageUser(){
-      System.out.println("\nStub method to message particular user\n");
-    }
-
-    /*d. Send a text message to all connected users.*/
-    public static void messageAllConnected(){
-      System.out.println("\nStub method to message all currently connected users\n");
-    }
-
-    /*e. Send a text message to all known users.*/
-    public static void messageAllKnown(){
-      System.out.println("\nStub method to message all known users\n");
-    }
-
-    /*f. Get my messages.*/
-    public static void getMessages(){
-      System.out.println("\nStub method to get messages\n");
     }
 }
 
@@ -224,7 +223,4 @@ class ClientWorker implements Runnable
         int port = 3030;
         server.listenSocket(port);
     }
-
-
-
 }

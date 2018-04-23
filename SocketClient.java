@@ -21,7 +21,7 @@ public class SocketClient
       name = sc.nextLine();
 
       //Send data over socket
-      out.println(name+"&1");
+      out.println(name+"&1&null&null");
 
       //Receive text from server
       try
@@ -44,6 +44,10 @@ public class SocketClient
 
        System.out.print("\nYour choice: ");
        String choice = sc.nextLine();
+       String recipient = "";
+       String message = "";
+       ArrayList<String> allUsers;
+       ArrayList<String> allConnected = new ArrayList<>();
 
        /* ensure choice is an actual choice */
        if(!Arrays.asList(responses).contains(choice)){
@@ -51,54 +55,92 @@ public class SocketClient
          continue;
        }
 
-       /* exit client if user chooses to quit */
-       if (choice.equals("g") || choice.equals("G")) {
-         out.println(name+"&g");
-         System.out.println("\nGoodbye\n");
-         System.exit(0);
+       /* Manipulate response based on choice */
+       switch (choice.toLowerCase()){
+          case "a":
+              out.println(name+"&"+choice.toLowerCase()+"&null&null");
+              break;
+          case "b":
+              out.println(name+"&"+choice.toLowerCase()+"&null&null");
+              break;
+          case "c":
+              System.out.print("\nMessage recipient: ");
+              recipient = sc.nextLine();
+              System.out.print("\nMessage: ");
+              message = sc.nextLine();
+              out.println(name+"&"+choice.toLowerCase()+"&"+recipient+"&"+message);
+              break;
+          case "d":
+              System.out.print("\nMessage: ");
+              message = sc.nextLine();
+              out.println(name+"&"+choice.toLowerCase()+"&null&"+message);
+              break;
+          case "e":
+              System.out.print("\nMessage: ");
+              message = sc.nextLine();
+              out.println(name+"&"+choice.toLowerCase()+"&null&"+message);
+              break;
+          case "f":
+              out.println(name+"&"+choice.toLowerCase()+"&null&null");
+              break;
+          case "g":
+              out.println(name+"&"+choice.toLowerCase()+"&null&null");
+              out.println(name+"&g&null&null");
+              System.out.println("\nGoodbye\n");
+              System.exit(0);
+              break;
+          default:
+              System.out.println("\""+choice+"\" is not a valid choice.\n");
+              break;
        }
-
-       //Send data over socket
-       out.println(name+"&"+choice.toLowerCase());
 
        //Receive text from server
        String response = "";
-       try
-       {
+       try{
           response = in.readLine();
           System.out.println("Server response: " + response);
        }
-       catch (IOException e)
-       {
+       catch (IOException e){
           System.out.println("Read failed");
           System.exit(1);
        }
 
-       /* Manipulate response based on choice */
+       /* Manipulate response to display information */
        switch (choice.toLowerCase()){
           case "a":
               System.out.println("\nALL USERS\n---------");
-              ArrayList<String> allUsers = new ArrayList<>(Arrays.asList(response.split("&")));
-
+              allUsers = new ArrayList<String>(Arrays.asList(response.split("&")));
               for (int i = 1; i < allUsers.size(); i++){
                 System.out.println(allUsers.get(i));
               }
               break;
           case "b":
-              System.out.println("\nCONNECTED USERS\n_______________");
-              ArrayList<String> allConnected = new ArrayList<>(Arrays.asList(response.split("&")));
+              System.out.println("\nCONNECTED USERS\n---------------");
+              allConnected = new ArrayList<String>(Arrays.asList(response.split("&")));
 
               for (int i = 1; i < allConnected.size(); i++){
                 System.out.println(allConnected.get(i));
               }
               break;
           case "c":
+              System.out.print();
+              System.out.println(response);
               break;
           case "d":
+              System.out.print();
+              System.out.println(response);
               break;
           case "e":
+              System.out.print();
+              System.out.println(response);
               break;
           case "f":
+              System.out.println("\nMY MESSAGES\n-----------");
+              allConnected = new ArrayList<String>(Arrays.asList(response.split("&")));
+
+              for (int i = 1; i < allConnected.size(); i++){
+                System.out.println(allConnected.get(i));
+              }
               break;
           default:
               System.out.println("\""+choice+"\" is not a valid choice.\n");
@@ -148,7 +190,7 @@ public class SocketClient
         + "a. Display the names of all known users.\n"
         + "b. Display the names of all currently connected users.\n"
         + "c. Send a text message to a particular user.\n"
-        + "d. Send a text message to a particular user.\n"
+        + "d. Send a text message to all currently connected users.\n"
         + "e. Send a text message to all known users.\n"
         + "f. Get my messages.\n"
         + "g. Exit.\n"
