@@ -2,7 +2,6 @@
 // CS5348 - Ozbirn
 // Due 4/23/18
 
-
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -132,7 +131,7 @@ class ClientWorker implements Runnable
                             }
                             out.println("Message delivered.");
 
-                            System.out.println(name+" posts a messge for " + recipient);
+                            System.out.println(name+" posts a message for " + recipient);
                             break;
 
                         case "d":
@@ -144,7 +143,9 @@ class ClientWorker implements Runnable
                                     // use mutual exclusion to keep from corrupting messages
                                     mutex.acquire();
                                     for (int i = 0; i < allConnected.size(); i++) {
-                                        messages.get(i).add(message);
+                                        String tempName = allConnected.get(i);
+                                        int j = allUsers.indexOf(tempName);
+                                        messages.get(j).add(message);
                                     }
                                     mutex.release();
                                     dGo = false;
@@ -153,7 +154,7 @@ class ClientWorker implements Runnable
                                 }
                             }
                             out.println("Messages delivered.");
-                            System.out.println(name+" posts a messge for all currently connected users.");
+                            System.out.println(name+" posts a message for all currently connected users.");
                             break;
                         case "e":
                             message = message+"#"+name;
@@ -173,7 +174,7 @@ class ClientWorker implements Runnable
                             }
 
                             out.println("Messages delivered.");
-                            System.out.println(name+" posts a messge for all users.");
+                            System.out.println(name+" posts a message for all users.");
                             break;
                         case "f":
                             int currentIndex = allUsers.indexOf(name);
@@ -299,8 +300,8 @@ class ClientWorker implements Runnable
        }
 
         SocketThrdServer server = new SocketThrdServer();
-        int port = Integer.valueOf(args[0]);
-        //int port = 3030;
+       int port = Integer.valueOf(args[0]);
+        // int port = 3030;
         server.listenSocket(port);
     }
 }

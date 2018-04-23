@@ -3,7 +3,7 @@ CS5348 - Ozbirn
 Due 4/23/18
 
 
-RUNNING THE PROGRAM
+COMPILE AND RUN
 
 Step 1:
 $javac SocketThrdServer.java
