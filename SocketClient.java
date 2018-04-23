@@ -46,8 +46,10 @@ public class SocketClient
        String choice = sc.nextLine();
        String recipient = "";
        String message = "";
+       String sender = "";
        ArrayList<String> allUsers;
-       ArrayList<String> allConnected = new ArrayList<>();
+       ArrayList<String> allConnected;
+       ArrayList<String> singleMessage;
 
        /* ensure choice is an actual choice */
        if(!Arrays.asList(responses).contains(choice)){
@@ -98,7 +100,6 @@ public class SocketClient
        String response = "";
        try{
           response = in.readLine();
-          System.out.println("Server response: " + response);
        }
        catch (IOException e){
           System.out.println("Read failed");
@@ -123,15 +124,15 @@ public class SocketClient
               }
               break;
           case "c":
-              System.out.print();
+              System.out.print("");
               System.out.println(response);
               break;
           case "d":
-              System.out.print();
+              System.out.print("");
               System.out.println(response);
               break;
           case "e":
-              System.out.print();
+              System.out.print("");
               System.out.println(response);
               break;
           case "f":
@@ -139,7 +140,11 @@ public class SocketClient
               allConnected = new ArrayList<String>(Arrays.asList(response.split("&")));
 
               for (int i = 1; i < allConnected.size(); i++){
-                System.out.println(allConnected.get(i));
+                singleMessage = new ArrayList<String>(Arrays.asList(allConnected.get(i).split("#")));
+                sender = singleMessage.get(1);
+                message = singleMessage.get(0);
+                System.out.print(String.format("%-12s" , sender+": "));
+                System.out.println(message);
               }
               break;
           default:

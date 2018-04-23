@@ -62,7 +62,7 @@ class ClientWorker implements Runnable
 
                     switch (command){
                         case "1": //connect
-                            System.out.println("here");
+
                             // add to the allUsers if they are new
                             if(!allUsers.contains(name)){
                                 allUsers.add(name);
@@ -83,16 +83,23 @@ class ClientWorker implements Runnable
                             break;
                         case "c":
                             int recipientIndex = allUsers.indexOf(recipient);
-                            messages.get(recipientIndex).add(message);
-                            out.println("Message delivered.");
+                            message = message+"#"+name;
+                            try{
+                                messages.get(recipientIndex).add(message);
+                                out.println("Message delivered.");
+                            } catch (ArrayIndexOutOfBoundsException exception){
+                                out.println("Recipient not found.");
+                            }
                             break;
                         case "d":
+                            message = message+"#"+name;
                             for (int i = 0; i < allConnected.size(); i++) {
                                 messages.get(i).add(message);
                             }
                             out.println("Message delivered.");
                             break;
                         case "e":
+                            message = message+"#"+name;
                             for (int i = 0; i < allUsers.size(); i++) {
                                 messages.get(i).add(message);
                             }
@@ -106,6 +113,7 @@ class ClientWorker implements Runnable
                                 mString+=messages.get(currentIndex).get(i);
                             }
                             out.println(mString);
+                            messages.get(currentIndex).removeAll(messages.get(currentIndex));
                             break;
                         case "g":
                             go = false;
