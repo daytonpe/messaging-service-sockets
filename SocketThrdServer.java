@@ -48,7 +48,6 @@ class ClientWorker implements Runnable
             boolean go = true;
             while(go){
                 line = in.readLine();
-                System.out.println("receiving: " + line);
 
                 if(line.contains("&")){
 
@@ -58,45 +57,64 @@ class ClientWorker implements Runnable
                     String command = request.get(1);
                     String recipient = request.get(2);
                     String message = request.get(3);
-                    System.out.println("name = " + name+"   |   command = " + command+"   |   recipient = " + recipient+"   |   message = " + message);
 
                     switch (command){
                         case "1": //connect
+                            // add to the allConnected list until they log off
+                            if(allConnected.contains(name)){
+                                out.println("User already online.");
+                                break;
+                            }
+
+                            allConnected.add(name);
 
                             // add to the allUsers if they are new
                             if(!allUsers.contains(name)){
                                 allUsers.add(name);
                                 ArrayList<String> temp = new ArrayList<>();
                                 messages.add(temp);
+                                System.out.println("Connection by unknown user "+name);
+                            }
+                            else{
+                                System.out.println("Connection by known user "+name);
                             }
 
-                            // add to the allConnected list until they log off
-                            if(!allConnected.contains(name))
-                                allConnected.add(name);
                             out.println(name);
                             break;
                         case "a":
                             out.println(displayAll());
+                            System.out.println(name+" displays all known users. ");
                             break;
                         case "b":
                             out.println(displayConnected());
+                            System.out.println(name+" displays all currently connected users. ");
                             break;
                         case "c":
                             int recipientIndex = allUsers.indexOf(recipient);
                             message = message+"#"+name;
                             try{
+                                //find the recipient and add message to his/her message list
                                 messages.get(recipientIndex).add(message);
                                 out.println("Message delivered.");
                             } catch (ArrayIndexOutOfBoundsException exception){
-                                out.println("Recipient not found.");
+                                //if recipient doesn't exist, add them
+                                allUsers.add(recipient);
+                                ArrayList<String> temp = new ArrayList<>();
+                                messages.add(temp);
+                                recipientIndex = allUsers.indexOf(recipient);
+                                messages.get(recipientIndex).add(message);
+                                out.println("Message delivered.");
                             }
+                            System.out.println(name+" posts a messge for " + recipient);
                             break;
                         case "d":
                             message = message+"#"+name;
                             for (int i = 0; i < allConnected.size(); i++) {
+                                System.out.println("messages.get(i).toString() = " + messages.get(i).toString());
                                 messages.get(i).add(message);
                             }
                             out.println("Message delivered.");
+                            System.out.println(name+" posts a messge for all currently connected users.");
                             break;
                         case "e":
                             message = message+"#"+name;
@@ -104,6 +122,7 @@ class ClientWorker implements Runnable
                                 messages.get(i).add(message);
                             }
                             out.println("Message delivered.");
+                            System.out.println(name+" posts a messge for all users.");
                             break;
                         case "f":
                             int currentIndex = allUsers.indexOf(name);
@@ -114,10 +133,12 @@ class ClientWorker implements Runnable
                             }
                             out.println(mString);
                             messages.get(currentIndex).removeAll(messages.get(currentIndex));
+                            System.out.println(name+" gets messages.");
                             break;
                         case "g":
                             go = false;
                             allConnected.remove(allConnected.indexOf(name));
+                            System.out.println(name+" exits.");
                             break;
                         default:
                             out.println("error");

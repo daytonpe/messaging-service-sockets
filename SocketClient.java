@@ -1,7 +1,6 @@
-// By Greg Ozbirn, University of Texas at Dallas
-// Adapted from example at Sun website:
-// http://java.sun.com/developer/onlineTraining/Programming/BasicJava2/socket.html
-// 11/07/07
+// Patrick Dayton
+// CS5348 - Ozbirn
+// Due 4/23/18
 
 import java.io.*;
 import java.net.*;
@@ -27,6 +26,10 @@ public class SocketClient
       try
       {
          String line = in.readLine();
+         if(line.equals("User already online.")){
+           System.out.println("\n"+line+"\n");
+           getName();
+         }
          System.out.println("\nWelcome " + line);
       }
       catch (IOException e)
@@ -109,7 +112,7 @@ public class SocketClient
        /* Manipulate response to display information */
        switch (choice.toLowerCase()){
           case "a":
-              System.out.println("\nALL USERS\n---------");
+              System.out.println("\nALL KNOWN USERS\n---------------");
               allUsers = new ArrayList<String>(Arrays.asList(response.split("&")));
               for (int i = 1; i < allUsers.size(); i++){
                 System.out.println(allUsers.get(i));
